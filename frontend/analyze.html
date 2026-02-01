@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат анализа</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Результат анализа сообщения</h1>
+</header>
+
+<main>
+    <h2>Исходное сообщение</h2>
+    <p>{{ message }}</p>
+
+    <h2>Результаты классификации</h2>
+    <ul>
+        <li>Тон сообщения: <strong>{{ tone }}</strong></li>
+        <li>Достоверность: <strong>{{ confidence }}</strong></li>
+        <li>Уровень риска ИБ: <strong>{{ security_risk }}</strong></li>
+    </ul>
+
+    <a href="/">Вернуться к форме ввода</a>
+</main>
+
+</body>
+</html>
