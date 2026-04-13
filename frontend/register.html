@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация — Система классификации тональности</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Система классификации тонального окраса сообщений</h1>
+</header>
+
+<main class="auth-container">
+    <h2>Регистрация</h2>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/register">
+        <label for="username">Логин</label>
+        <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Не менее 3 символов"
+            minlength="3"
+            required
+            autofocus
+        >
+
+        <label for="password">Пароль</label>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Не менее 6 символов"
+            minlength="6"
+            required
+        >
+
+        <label for="password2">Повторите пароль</label>
+        <input
+            type="password"
+            id="password2"
+            name="password2"
+            placeholder="Повторите пароль"
+            required
+        >
+
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    <div class="auth-links">
+        <p>Уже есть учётная запись? <a href="/login">Войти</a></p>
+    </div>
+</main>
+
+<footer>
+    <p>
+        Бакалаврская выпускная квалификационная работа ·
+        Классификация тонального окраса сообщений ·
+        FastAPI + LLM
+    </p>
+</footer>
+
+</body>
+</html>

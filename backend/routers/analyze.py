@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Form
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Form, Request, Cookie
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
 import requests
 import json
 import re
 from pathlib import Path
+
+from ..auth import get_user_by_session, log_analysis
 
 router = APIRouter()
 
@@ -60,12 +61,10 @@ Your response must contain exactly ONE JSON object.
 
 
 def normalize_text(text: str) -> str:
-    # Убирает лишние пробелы, но сохраняет переносы для читаемости
     return " ".join(text.split())
 
 
 def extract_json(text: str) -> dict:
-    # Достаёт первый JSON-объект из текста
     match = re.search(r'\{[\s\S]*\}', text)
     if not match:
         raise ValueError("JSON not found in model output")
@@ -73,7 +72,16 @@ def extract_json(text: str) -> dict:
 
 
 @router.post("/analyze", response_class=HTMLResponse)
-async def analyze(request: Request, message: str = Form(...)):
+async def analyze(
+    request: Request,
+    message: str = Form(...),
+    session_id: str = Cookie(default=None),
+):
+    # Проверка авторизации
+    user = get_user_by_session(session_id)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
     normalized_message = normalize_text(message)
 
     prompt = f"""
@@ -88,29 +96,39 @@ INPUT_MESSAGE:
         "prompt": prompt,
         "max_tokens": 150,
         "temperature": 0.0,
-        "top_p": 1.0
+        "top_p": 1.0,
     }
 
     try:
         resp = requests.post(API_URL, json=data, timeout=60)
         resp.raise_for_status()
         response_json = resp.json()
-
         raw_text = response_json["choices"][0]["text"].strip()
         result = extract_json(raw_text)
-
-    except Exception as e:
+    except Exception:
         result = {
             "tone": "ERROR",
             "confidence": 0.0,
-            "security_risk": "UNKNOWN"
+            "security_risk": "UNKNOWN",
         }
 
-    # Возвращаем рендер HTML через Jinja2
-    return templates.TemplateResponse("analyze.html", {
-        "request": request,
-        "message": message,
-        "tone": result.get("tone"),
-        "confidence": result.get("confidence"),
-        "security_risk": result.get("security_risk")
-    })
+    # Сохраняем результат в БД
+    log_analysis(
+        user_id=user["id"],
+        message=message,
+        tone=result.get("tone", "ERROR"),
+        confidence=float(result.get("confidence", 0.0)),
+        security_risk=result.get("security_risk", "UNKNOWN"),
+    )
+
+    return templates.TemplateResponse(
+        "analyze.html",
+        {
+            "request": request,
+            "message": message,
+            "tone": result.get("tone"),
+            "confidence": result.get("confidence"),
+            "security_risk": result.get("security_risk"),
+            "username": user["username"],
+        },
+    )

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход — Система классификации тональности</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Система классификации тонального окраса сообщений</h1>
+</header>
+
+<main class="auth-container">
+    <h2>Вход в систему</h2>
+
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/login">
+        <label for="username">Логин</label>
+        <input type="text" id="username" name="username" placeholder="Введите логин" required autofocus>
+
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" placeholder="Введите пароль" required>
+
+        <button type="submit">Войти</button>
+    </form>
+
+    <div class="auth-links">
+        <p>Нет учётной записи? <a href="/register">Зарегистрироваться</a></p>
+        <p>
+            <a href="#" onclick="showForgotPassword(event)">Не помню пароль</a>
+        </p>
+    </div>
+
+    <div id="forgot-password-notice" class="alert alert-info" style="display:none;">
+        Для восстановления доступа обратитесь к администратору системы.
+        Самостоятельный сброс пароля не предусмотрен в целях обеспечения
+        информационной безопасности.
+    </div>
+</main>
+
+<footer>
+    <p>
+        Бакалаврская выпускная квалификационная работа ·
+        Классификация тонального окраса сообщений ·
+        FastAPI + LLM
+    </p>
+</footer>
+
+<script>
+    function showForgotPassword(e) {
+        e.preventDefault();
+        const notice = document.getElementById('forgot-password-notice');
+        notice.style.display = notice.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+
+</body>
+</html>

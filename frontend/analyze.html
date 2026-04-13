@@ -8,7 +8,13 @@
 <body>
 
 <header>
-    <h1>Результат анализа сообщения</h1>
+    <div class="header-inner">
+        <h1>Результат анализа сообщения</h1>
+        <div class="header-user">
+            <span>Пользователь: <strong>{{ username }}</strong></span>
+            <a href="/logout" class="btn-logout">Выйти</a>
+        </div>
+    </div>
 </header>
 
 <main>
