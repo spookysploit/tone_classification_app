@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель администратора — Журнал запросов</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .admin-header-badge {
+            display: inline-block;
+            background: #e53e3e;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 9px;
+            border-radius: 10px;
+            letter-spacing: 0.08em;
+            margin-left: 10px;
+            vertical-align: middle;
+            text-transform: uppercase;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px 16px;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #4a6fa5;
+            line-height: 1.1;
+        }
+
+        .stat-card .stat-value.danger { color: #e53e3e; }
+        .stat-card .stat-value.warn   { color: #d69e2e; }
+        .stat-card .stat-value.ok     { color: #38a169; }
+
+        .stat-card .stat-label {
+            font-size: 0.78rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .filter-panel {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0;
+        }
+
+        .filter-group input[type="text"],
+        .filter-group select {
+            padding: 7px 11px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #2d3748;
+            background: #fff;
+            min-width: 160px;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #4a6fa5;
+        }
+
+        .filter-reset {
+            background: none;
+            border: 1px solid #cbd5e0;
+            color: #718096;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-self: flex-end;
+        }
+
+        .filter-reset:hover {
+            border-color: #4a6fa5;
+            color: #4a6fa5;
+        }
+
+        .table-wrap {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.88rem;
+            color: #718096;
+        }
+
+        .table-toolbar strong { color: #2d3748; }
+
+        .export-btn {
+            background: #4a6fa5;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .export-btn:hover { background: #3a5a8f; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        thead tr {
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        thead th {
+            padding: 11px 14px;
+            text-align: left;
+            font-weight: 700;
+            color: #4a5568;
+            white-space: nowrap;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f0f4f8;
+            transition: background 0.12s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #f7faff; }
+
+        tbody td {
+            padding: 10px 14px;
+            color: #4a5568;
+            vertical-align: middle;
+        }
+
+        tbody tr.row-high   { border-left: 3px solid #e53e3e; }
+        tbody tr.row-medium { border-left: 3px solid #d69e2e; }
+
+        .msg-cell { max-width: 260px; }
+
+        .msg-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            cursor: pointer;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .msg-text.expanded { display: block; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+
+        .tone-NEUTRAL   { background:#edf2f7; color:#4a5568; }
+        .tone-POSITIVE  { background:#f0fff4; color:#276749; }
+        .tone-NEGATIVE  { background:#fffaf0; color:#975a16; }
+        .tone-AGGRESSIVE{ background:#fff5f5; color:#c53030; }
+        .tone-TOXIC     { background:#faf5ff; color:#6b21a8; }
+        .tone-THREAT    { background:#fff1f0; color:#991b1b; border:1px solid #fca5a5; }
+        .tone-ERROR     { background:#f7fafc; color:#a0aec0; }
+
+        .risk-LOW    { background:#f0fff4; color:#276749; }
+        .risk-MEDIUM { background:#fffaf0; color:#975a16; }
+        .risk-HIGH   { background:#fff5f5; color:#c53030; }
+        .risk-UNKNOWN{ background:#f7fafc; color:#a0aec0; }
+
+        .user-chip {
+            display: inline-block;
+            background: #ebf8ff;
+            color: #2c5282;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .conf-wrap { display:flex; align-items:center; gap:7px; }
+        .conf-bar  { width:52px; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+        .conf-fill { height:100%; background:#4a6fa5; border-radius:3px; }
+        .conf-val  { font-size:0.82rem; color:#718096; white-space:nowrap; }
+
+        .date-cell { white-space:nowrap; font-size:0.8rem; color:#a0aec0; }
+        .num-cell  { color:#cbd5e0; font-size:0.8rem; }
+
+        #no-results {
+            display:none;
+            text-align:center;
+            padding:28px;
+            color:#a0aec0;
+            font-size:0.95rem;
+            border-top: 1px solid #f0f4f8;
+        }
+
+        .empty-state { text-align:center; padding:60px 20px; }
+        .empty-icon  { font-size:3rem; margin-bottom:12px; }
+
+        .nav-links { display:flex; gap:10px; }
+
+        .btn-nav {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-nav-blue { background:#4a6fa5; color:#fff; }
+        .btn-nav-blue:hover { background:#3a5a8f; text-decoration:none; }
+        .btn-nav-red  { background:#e53e3e; color:#fff; }
+        .btn-nav-red:hover { background:#c53030; text-decoration:none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <h1>
+            Панель администратора
+            <span class="admin-header-badge">ADMIN</span>
+        </h1>
+        <div class="header-user">
+            <span>Вы вошли как: <strong>{{ username }}</strong></span>
+            <div class="nav-links">
+                <a href="/" class="btn-nav btn-nav-blue">← Главная</a>
+                <a href="/logout" class="btn-nav btn-nav-red">Выйти</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main style="max-width: 1200px;">
+
+    <h2>Сводная статистика</h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Всего запросов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-users">—</div>
+            <div class="stat-label">Пользователей</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value danger" id="stat-high">—</div>
+            <div class="stat-label">Высокий риск</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value danger" id="stat-threat">—</div>
+            <div class="stat-label">Угрозы (THREAT)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value warn" id="stat-toxic">—</div>
+            <div class="stat-label">Токсичные</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value warn" id="stat-aggressive">—</div>
+            <div class="stat-label">Агрессивные</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value ok" id="stat-neutral">—</div>
+            <div class="stat-label">Нейтральные</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-avg-conf">—</div>
+            <div class="stat-label">Средняя уверенность</div>
+        </div>
+    </div>
+
+    <h2>Журнал всех запросов</h2>
+
+    <!-- Фильтры -->
+    <div class="filter-panel">
+        <div class="filter-group">
+            <label>Пользователь</label>
+            <input type="text" id="filter-user" placeholder="Введите логин...">
+        </div>
+        <div class="filter-group">
+            <label>Текст сообщения</label>
+            <input type="text" id="filter-message" placeholder="Поиск по тексту...">
+        </div>
+        <div class="filter-group">
+            <label>Тон</label>
+            <select id="filter-tone">
+                <option value="">Все</option>
+                <option value="NEUTRAL">NEUTRAL</option>
+                <option value="POSITIVE">POSITIVE</option>
+                <option value="NEGATIVE">NEGATIVE</option>
+                <option value="AGGRESSIVE">AGGRESSIVE</option>
+                <option value="TOXIC">TOXIC</option>
+                <option value="THREAT">THREAT</option>
+                <option value="ERROR">ERROR</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Риск ИБ</label>
+            <select id="filter-risk">
+                <option value="">Все</option>
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+            </select>
+        </div>
+        <!-- <button class="filter-reset" onclick="resetFilters()">✕ Сбросить</button> -->
+    </div>
+
+    {% if records %}
+    <div class="table-wrap">
+        <div class="table-toolbar">
+            <span>Показано: <strong id="visible-count">{{ total }}</strong> из <strong>{{ total }}</strong></span>
+            <button class="export-btn" onclick="exportCSV()">⬇ Экспорт CSV</button>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Дата и время</th>
+                        <th>Пользователь</th>
+                        <th>Сообщение</th>
+                        <th>Тон</th>
+                        <th>Уверенность</th>
+                        <th>Риск ИБ</th>
+                    </tr>
+                </thead>
+                <tbody id="log-tbody">
+                    {% for rec in records %}
+                    <tr
+                        class="{% if rec.security_risk == 'HIGH' %}row-high{% elif rec.security_risk == 'MEDIUM' %}row-medium{% endif %}"
+                        data-user="{{ rec.username | lower }}"
+                        data-message="{{ rec.message | lower }}"
+                        data-tone="{{ rec.tone or 'ERROR' }}"
+                        data-risk="{{ rec.security_risk or 'UNKNOWN' }}"
+                        data-username="{{ rec.username }}"
+                        data-raw-message="{{ rec.message }}"
+                        data-raw-tone="{{ rec.tone or 'ERROR' }}"
+                        data-raw-risk="{{ rec.security_risk or 'UNKNOWN' }}"
+                        data-raw-conf="{{ rec.confidence or 0 }}"
+                        data-raw-date="{{ rec.analyzed_at }}"
+                    >
+                        <td class="num-cell">{{ loop.index }}</td>
+                        <td class="date-cell">{{ rec.analyzed_at }}</td>
+                        <td><span class="user-chip">{{ rec.username }}</span></td>
+                        <td class="msg-cell">
+                            <span class="msg-text" onclick="this.classList.toggle('expanded')">{{ rec.message }}</span>
+                        </td>
+                        <td>
+                            <span class="badge tone-{{ rec.tone or 'ERROR' }}">{{ rec.tone or 'ERROR' }}</span>
+                        </td>
+                        <td>
+                            {% set conf = rec.confidence if rec.confidence is not none else 0 %}
+                            <div class="conf-wrap">
+                                <div class="conf-bar">
+                                    <div class="conf-fill" style="width:{{ (conf * 100)|int }}%"></div>
+                                </div>
+                                <span class="conf-val">{{ "%.2f"|format(conf) }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge risk-{{ rec.security_risk or 'UNKNOWN' }}">{{ rec.security_risk or 'UNKNOWN' }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="no-results">Записи не найдены</div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p style="color:#718096;">В системе пока нет ни одного запроса.</p>
+    </div>
+    {% endif %}
+
+</main>
+
+<footer>
+    <p>
+        Бакалаврская выпускная квалификационная работа ·
+        Классификация тонального окраса сообщений ·
+        FastAPI + LLM · Панель администратора
+    </p>
+</footer>
+
+<script>
+    // ---- Статистика ----
+    const rows = Array.from(document.querySelectorAll('#log-tbody tr'));
+    const users = new Set();
+    let cHigh = 0, cThreat = 0, cToxic = 0, cAggr = 0, cNeutral = 0;
+    let confSum = 0, confCount = 0;
+
+    rows.forEach(r => {
+        users.add(r.dataset.user);
+        const tone = r.dataset.tone, risk = r.dataset.risk;
+        if (risk  === 'HIGH')       cHigh++;
+        if (tone  === 'THREAT')     cThreat++;
+        if (tone  === 'TOXIC')      cToxic++;
+        if (tone  === 'AGGRESSIVE') cAggr++;
+        if (tone  === 'NEUTRAL')    cNeutral++;
+        const v = parseFloat(r.querySelector('.conf-val')?.textContent);
+        if (!isNaN(v)) { confSum += v; confCount++; }
+    });
+
+    const set = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+    set('stat-users',      users.size);
+    set('stat-high',       cHigh);
+    set('stat-threat',     cThreat);
+    set('stat-toxic',      cToxic);
+    set('stat-aggressive', cAggr);
+    set('stat-neutral',    cNeutral);
+    set('stat-avg-conf',   confCount ? (confSum / confCount).toFixed(2) : '—');
+
+    // ---- Фильтрация ----
+    const fUser    = document.getElementById('filter-user');
+    const fMsg     = document.getElementById('filter-message');
+    const fTone    = document.getElementById('filter-tone');
+    const fRisk    = document.getElementById('filter-risk');
+    const noRes    = document.getElementById('no-results');
+    const visCount = document.getElementById('visible-count');
+
+    function applyFilters() {
+        const u = fUser.value.toLowerCase().trim();
+        const m = fMsg.value.toLowerCase().trim();
+        const t = fTone.value;
+        const r = fRisk.value;
+        let visible = 0;
+
+        rows.forEach(row => {
+            const show = (!u || row.dataset.user.includes(u))
+                      && (!m || row.dataset.message.includes(m))
+                      && (!t || row.dataset.tone === t)
+                      && (!r || row.dataset.risk === r);
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (noRes)    noRes.style.display  = visible === 0 ? 'block' : 'none';
+        if (visCount) visCount.textContent = visible;
+    }
+
+    function resetFilters() {
+        fUser.value = ''; fMsg.value = ''; fTone.value = ''; fRisk.value = '';
+        applyFilters();
+    }
+
+    [fUser, fMsg].forEach(el => el?.addEventListener('input', applyFilters));
+    [fTone, fRisk].forEach(el => el?.addEventListener('change', applyFilters));
+
+    // ---- Экспорт CSV ----
+    function exportCSV() {
+        const visible = rows.filter(r => r.style.display !== 'none');
+        const header  = ['#','Дата','Пользователь','Сообщение','Тон','Уверенность','Риск ИБ'];
+        const lines   = [header.join(';')];
+
+        visible.forEach((r, i) => {
+            const msg = (r.dataset['rawMessage'] || '').replace(/"/g, '""');
+            lines.push([
+                i + 1,
+                r.dataset['rawDate'],
+                r.dataset.username,
+                `"${msg}"`,
+                r.dataset['rawTone'],
+                parseFloat(r.dataset['rawConf']).toFixed(2),
+                r.dataset['rawRisk'],
+            ].join(';'));
+        });
+
+        const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = 'admin_log.csv'; a.click();
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+</body>
+</html>

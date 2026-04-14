@@ -107,13 +107,22 @@ def delete_session(session_id: str):
 # Лог анализов
 # ---------------------------------------------------------------------------
 
-def log_analysis(user_id: int, message: str, tone: str, confidence: float, security_risk: str):
+def log_analysis(
+    user_id: int,
+    username: str,
+    message: str,
+    tone: str,
+    confidence: float,
+    security_risk: str,
+):
+    """Сохраняет результат анализа в таблицу analysis_log."""
     conn = get_connection()
     try:
         conn.execute(
-            """INSERT INTO analysis_log (user_id, message, tone, confidence, security_risk)
-               VALUES (?, ?, ?, ?, ?)""",
-            (user_id, message, tone, confidence, security_risk),
+            """INSERT INTO analysis_log
+               (user_id, username, message, tone, confidence, security_risk)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (user_id, username, message, tone, confidence, security_risk),
         )
         conn.commit()
     finally:

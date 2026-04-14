@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from ..auth import get_user_by_session, log_analysis
+from ..database import get_user_history, get_all_history
 
 router = APIRouter()
 
@@ -71,13 +72,16 @@ def extract_json(text: str) -> dict:
     return json.loads(match.group())
 
 
+# ---------------------------------------------------------------------------
+# Анализ сообщения
+# ---------------------------------------------------------------------------
+
 @router.post("/analyze", response_class=HTMLResponse)
 async def analyze(
     request: Request,
     message: str = Form(...),
     session_id: str = Cookie(default=None),
 ):
-    # Проверка авторизации
     user = get_user_by_session(session_id)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -112,9 +116,10 @@ INPUT_MESSAGE:
             "security_risk": "UNKNOWN",
         }
 
-    # Сохраняем результат в БД
+    # Сохраняем результат в БД (с username)
     log_analysis(
         user_id=user["id"],
+        username=user["username"],
         message=message,
         tone=result.get("tone", "ERROR"),
         confidence=float(result.get("confidence", 0.0)),
@@ -130,5 +135,59 @@ INPUT_MESSAGE:
             "confidence": result.get("confidence"),
             "security_risk": result.get("security_risk"),
             "username": user["username"],
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# История запросов пользователя
+# ---------------------------------------------------------------------------
+
+@router.get("/history", response_class=HTMLResponse)
+async def history(
+    request: Request,
+    session_id: str = Cookie(default=None),
+):
+    user = get_user_by_session(session_id)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    records = get_user_history(user_id=user["id"], limit=100)
+
+    return templates.TemplateResponse(
+        "history.html",
+        {
+            "request": request,
+            "username": user["username"],
+            "records": records,
+            "total": len(records),
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# История всех запросов (только для admin)
+# ---------------------------------------------------------------------------
+
+@router.get("/admin/history", response_class=HTMLResponse)
+async def admin_history(
+    request: Request,
+    session_id: str = Cookie(default=None),
+):
+    user = get_user_by_session(session_id)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    if user.get("role") != "admin":
+        return RedirectResponse(url="/", status_code=303)
+
+    records = get_all_history(limit=500)
+
+    return templates.TemplateResponse(
+        "admin_history.html",
+        {
+            "request": request,
+            "username": user["username"],
+            "records": records,
+            "total": len(records),
         },
     )

@@ -4,6 +4,147 @@
     <meta charset="UTF-8">
     <title>Результат анализа</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .result-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 12px;
+        }
+
+        .result-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f4f8;
+            font-size: 0.97rem;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .tone-NEUTRAL   { background:#edf2f7; color:#4a5568; }
+        .tone-POSITIVE  { background:#f0fff4; color:#276749; }
+        .tone-NEGATIVE  { background:#fffaf0; color:#975a16; }
+        .tone-AGGRESSIVE{ background:#fff5f5; color:#c53030; }
+        .tone-TOXIC     { background:#faf5ff; color:#6b21a8; }
+        .tone-THREAT    { background:#fff1f0; color:#991b1b; border:1px solid #fca5a5; }
+        .tone-ERROR     { background:#f7fafc; color:#a0aec0; }
+
+        .risk-LOW    { background:#f0fff4; color:#276749; }
+        .risk-MEDIUM { background:#fffaf0; color:#975a16; }
+        .risk-HIGH   { background:#fff5f5; color:#c53030; }
+        .risk-UNKNOWN{ background:#f7fafc; color:#a0aec0; }
+
+        .message-box {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-size: 0.97rem;
+            color: #2d3748;
+            line-height: 1.7;
+            word-break: break-word;
+            margin-top: 8px;
+        }
+
+        .confidence-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .confidence-bar {
+            width: 80px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-bar-fill {
+            height: 100%;
+            background: #4a6fa5;
+            border-radius: 4px;
+        }
+
+        .action-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #4a6fa5;
+            color: #fff;
+            padding: 9px 22px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #3a5a8f;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #4a6fa5;
+            border: 1px solid #4a6fa5;
+            padding: 9px 22px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #ebf4ff;
+            text-decoration: none;
+        }
+
+        /* Алерт для высокого риска */
+        .risk-alert {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 12px 16px;
+            color: #c53030;
+            font-size: 0.93rem;
+            font-weight: 600;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
 </head>
 <body>
 
@@ -12,6 +153,7 @@
         <h1>Результат анализа сообщения</h1>
         <div class="header-user">
             <span>Пользователь: <strong>{{ username }}</strong></span>
+            <a href="/history" class="btn-logout" style="background:#4a6fa5;">История</a>
             <a href="/logout" class="btn-logout">Выйти</a>
         </div>
     </div>
@@ -19,17 +161,51 @@
 
 <main>
     <h2>Исходное сообщение</h2>
-    <p>{{ message }}</p>
+    <div class="message-box">{{ message }}</div>
 
     <h2>Результаты классификации</h2>
-    <ul>
-        <li>Тон сообщения: <strong>{{ tone }}</strong></li>
-        <li>Достоверность: <strong>{{ confidence }}</strong></li>
-        <li>Уровень риска ИБ: <strong>{{ security_risk }}</strong></li>
-    </ul>
+    <div class="result-card">
+        <div class="result-row">
+            <span class="result-label">Тон сообщения</span>
+            <span class="badge tone-{{ tone or 'ERROR' }}">{{ tone or 'ERROR' }}</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Уверенность модели</span>
+            <div class="confidence-bar-wrap">
+                <div class="confidence-bar">
+                    <div class="confidence-bar-fill"
+                         style="width: {{ ((confidence or 0) * 100) | int }}%">
+                    </div>
+                </div>
+                <span class="result-value">{{ "%.2f"|format(confidence or 0) }}</span>
+            </div>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Уровень риска ИБ</span>
+            <span class="badge risk-{{ security_risk or 'UNKNOWN' }}">{{ security_risk or 'UNKNOWN' }}</span>
+        </div>
+    </div>
 
-    <a href="/">Вернуться к форме ввода</a>
+    {% if security_risk == 'HIGH' or tone in ['THREAT', 'TOXIC', 'AGGRESSIVE'] %}
+    <div class="risk-alert">
+        ⚠ Внимание: сообщение содержит признаки угрозы или деструктивного контента.
+        Запись зафиксирована в журнале безопасности.
+    </div>
+    {% endif %}
+
+    <div class="action-links">
+        <a href="/" class="btn-primary">← Анализировать новое сообщение</a>
+        <a href="/history" class="btn-secondary">📋 История запросов</a>
+    </div>
 </main>
+
+<footer>
+    <p>
+        Бакалаврская выпускная квалификационная работа ·
+        Классификация тонального окраса сообщений ·
+        FastAPI + LLM
+    </p>
+</footer>
 
 </body>
 </html>

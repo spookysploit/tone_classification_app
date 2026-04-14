@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <title>Система классификации тонального окраса сообщений</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .admin-link {
+            display: inline-block;
+            background: #e53e3e;
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .admin-link:hover {
+            background: #c53030;
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -12,7 +29,11 @@
     <div class="header-inner">
         <h1>Прототип системы классификации тонального окраса сообщений</h1>
         <div class="header-user">
-            <span>Пользователь: <strong>{{username}}</strong></span>
+            <span>Пользователь: <strong>{{ username }}</strong></span>
+            {% if role == 'admin' %}
+            <a href="/admin/history" class="admin-link">Админ-панель</a>
+            {% endif %}
+            <a href="/history" class="btn-logout" style="background:#4a6fa5;">История</a>
             <a href="/logout" class="btn-logout">Выйти</a>
         </div>
     </div>
