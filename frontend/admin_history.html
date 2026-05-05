@@ -306,7 +306,7 @@
         </div>
         <div class="stat-card">
             <div class="stat-value danger" id="stat-threat">—</div>
-            <div class="stat-label">Угрозы (THREAT)</div>
+            <div class="stat-label">Угрозы</div>
         </div>
         <div class="stat-card">
             <div class="stat-value warn" id="stat-toxic">—</div>
@@ -342,22 +342,22 @@
             <label>Тон</label>
             <select id="filter-tone">
                 <option value="">Все</option>
-                <option value="NEUTRAL">NEUTRAL</option>
-                <option value="POSITIVE">POSITIVE</option>
-                <option value="NEGATIVE">NEGATIVE</option>
-                <option value="AGGRESSIVE">AGGRESSIVE</option>
-                <option value="TOXIC">TOXIC</option>
-                <option value="THREAT">THREAT</option>
-                <option value="ERROR">ERROR</option>
+                <option value="NEUTRAL">Нейтральный</option>
+                <option value="POSITIVE">Положительный</option>
+                <option value="NEGATIVE">Отрицательный</option>
+                <option value="AGGRESSIVE">Агрессивный</option>
+                <option value="TOXIC">Токсичный</option>
+                <option value="THREAT">Угроза</option>
+                <option value="ERROR">Ошибка</option>
             </select>
         </div>
         <div class="filter-group">
             <label>Риск ИБ</label>
             <select id="filter-risk">
                 <option value="">Все</option>
-                <option value="LOW">LOW</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="HIGH">HIGH</option>
+                <option value="LOW">Низкий</option>
+                <option value="MEDIUM">Средний</option>
+                <option value="HIGH">Высокий</option>
             </select>
         </div>
         <!-- <button class="filter-reset" onclick="resetFilters()">✕ Сбросить</button> -->
@@ -405,7 +405,7 @@
                             <span class="msg-text" onclick="this.classList.toggle('expanded')">{{ rec.message }}</span>
                         </td>
                         <td>
-                            <span class="badge tone-{{ rec.tone or 'ERROR' }}">{{ rec.tone or 'ERROR' }}</span>
+                            <span class="badge tone-{{ rec.tone or 'ERROR' }}">{{ rec.translated_tone or 'Ошибка' }}</span>
                         </td>
                         <td>
                             {% set conf = rec.confidence if rec.confidence is not none else 0 %}
@@ -417,7 +417,7 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge risk-{{ rec.security_risk or 'UNKNOWN' }}">{{ rec.security_risk or 'UNKNOWN' }}</span>
+                            <span class="badge risk-{{ rec.security_risk or 'UNKNOWN' }}">{{ rec.translated_security_risk or 'Неизвестный' }}</span>
                         </td>
                     </tr>
                     {% endfor %}

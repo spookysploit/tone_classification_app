@@ -17,6 +17,29 @@ templates = Jinja2Templates(directory=str(FRONTEND_DIR))
 
 API_URL = "http://127.0.0.1:5000/v1/completions"
 
+TONE_TRANSLATIONS = {
+    "NEUTRAL": "Нейтральный",
+    "POSITIVE": "Положительный",
+    "NEGATIVE": "Отрицательный",
+    "AGGRESSIVE": "Агрессивный",
+    "TOXIC": "Токсичный",
+    "THREAT": "Угроза",
+    "ERROR": "Ошибка"
+}
+
+RISK_TRANSLATIONS = {
+    "LOW": "Низкий",
+    "MEDIUM": "Средний",
+    "HIGH": "Высокий",
+    "UNKNOWN": "Неизвестный"
+}
+
+def translate_tone(tone):
+    return TONE_TRANSLATIONS.get(tone, tone)
+
+def translate_risk(risk):
+    return RISK_TRANSLATIONS.get(risk, risk)
+
 SYSTEM_PROMPT = """
 You are a deterministic text classification module inside an information security system.
 
@@ -165,6 +188,9 @@ INPUT_MESSAGE:
         security_risk=result.get("security_risk", "UNKNOWN"),
     )
 
+    translated_tone = translate_tone(result.get("tone"))
+    translated_security_risk = translate_risk(result.get("security_risk"))
+
     return templates.TemplateResponse(
         "analyze.html",
         {
@@ -173,6 +199,8 @@ INPUT_MESSAGE:
             "tone": result.get("tone"),
             "confidence": result.get("confidence"),
             "security_risk": result.get("security_risk"),
+            "translated_tone": translated_tone,
+            "translated_security_risk": translated_security_risk,
             "username": user["username"],
         },
     )
@@ -192,6 +220,10 @@ async def history(
         return RedirectResponse(url="/login", status_code=303)
 
     records = get_user_history(user_id=user["id"], limit=100)
+
+    for rec in records:
+        rec['translated_tone'] = translate_tone(rec.get('tone'))
+        rec['translated_security_risk'] = translate_risk(rec.get('security_risk'))
 
     return templates.TemplateResponse(
         "history.html",
@@ -220,6 +252,10 @@ async def admin_history(
         return RedirectResponse(url="/", status_code=303)
 
     records = get_all_history(limit=500)
+
+    for rec in records:
+        rec['translated_tone'] = translate_tone(rec.get('tone'))
+        rec['translated_security_risk'] = translate_risk(rec.get('security_risk'))
 
     return templates.TemplateResponse(
         "admin_history.html",

@@ -167,7 +167,7 @@
     <div class="result-card">
         <div class="result-row">
             <span class="result-label">Тон сообщения</span>
-            <span class="badge tone-{{ tone or 'ERROR' }}">{{ tone or 'ERROR' }}</span>
+            <span class="badge tone-{{ tone or 'ERROR' }}">{{ translated_tone or 'Ошибка' }}</span>
         </div>
         <div class="result-row">
             <span class="result-label">Уверенность модели</span>
@@ -182,7 +182,7 @@
         </div>
         <div class="result-row">
             <span class="result-label">Уровень риска ИБ</span>
-            <span class="badge risk-{{ security_risk or 'UNKNOWN' }}">{{ security_risk or 'UNKNOWN' }}</span>
+            <span class="badge risk-{{ security_risk or 'UNKNOWN' }}">{{ translated_security_risk or 'Неизвестный' }}</span>
         </div>
     </div>
 

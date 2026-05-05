@@ -262,22 +262,22 @@
             <label for="tone-filter">Тон:</label><br>
             <select id="tone-filter">
                 <option value="">Все</option>
-                <option value="NEUTRAL">NEUTRAL</option>
-                <option value="POSITIVE">POSITIVE</option>
-                <option value="NEGATIVE">NEGATIVE</option>
-                <option value="AGGRESSIVE">AGGRESSIVE</option>
-                <option value="TOXIC">TOXIC</option>
-                <option value="THREAT">THREAT</option>
-                <option value="ERROR">ERROR</option>
+                <option value="NEUTRAL">Нейтральный</option>
+                <option value="POSITIVE">Положительный</option>
+                <option value="NEGATIVE">Отрицательный</option>
+                <option value="AGGRESSIVE">Агрессивный</option>
+                <option value="TOXIC">Токсичный</option>
+                <option value="THREAT">Угроза</option>
+                <option value="ERROR">Ошибка</option>
             </select>
         </div>
         <div>
             <label for="risk-filter">Риск ИБ:</label><br>
             <select id="risk-filter">
                 <option value="">Все</option>
-                <option value="LOW">LOW</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="HIGH">HIGH</option>
+                <option value="LOW">Низкий</option>
+                <option value="MEDIUM">Средний</option>
+                <option value="HIGH">Высокий</option>
             </select>
         </div>
     </div>
@@ -308,7 +308,7 @@
                     </td>
                     <td>
                         <span class="badge tone-{{ rec.tone or 'ERROR' }}">
-                            {{ rec.tone or 'ERROR' }}
+                            {{ rec.translated_tone or 'Ошибка' }}
                         </span>
                     </td>
                     <td>
@@ -322,7 +322,7 @@
                     </td>
                     <td>
                         <span class="badge risk-{{ rec.security_risk or 'UNKNOWN' }}">
-                            {{ rec.security_risk or 'UNKNOWN' }}
+                            {{ rec.translated_security_risk or 'Неизвестный' }}
                         </span>
                     </td>
                 </tr>

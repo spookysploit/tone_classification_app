@@ -46,10 +46,10 @@ async def register(
             {"request": request, "error": "Логин должен содержать не менее 3 символов."},
         )
 
-    if len(password) < 6:
+    if len(password) < 8:
         return templates.TemplateResponse(
             "register.html",
-            {"request": request, "error": "Пароль должен содержать не менее 6 символов."},
+            {"request": request, "error": "Пароль должен содержать не менее 8 символов."},
         )
 
     success = create_user(username, password)
