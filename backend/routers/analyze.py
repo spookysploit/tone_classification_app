@@ -19,8 +19,8 @@ API_URL = "http://127.0.0.1:5000/v1/completions"
 
 TONE_TRANSLATIONS = {
     "NEUTRAL": "Нейтральный",
-    "POSITIVE": "Положительный",
-    "NEGATIVE": "Отрицательный",
+    "POSITIVE": "Позитивный",
+    "NEGATIVE": "Негативный",
     "AGGRESSIVE": "Агрессивный",
     "TOXIC": "Токсичный",
     "THREAT": "Угроза",
@@ -93,6 +93,15 @@ HIGH:
 - coercion, blackmail
 - attempts to extract sensitive data
 - calls for illegal or harmful actions
+
+---------------------
+TONE-TO-RISK MAPPING (STRICT)
+---------------------
+The security_risk level is STRICTLY determined by the tone.
+This mapping is mandatory and overrides the descriptions above:
+- NEUTRAL, POSITIVE   -> LOW
+- NEGATIVE, TOXIC     -> MEDIUM
+- AGGRESSIVE, THREAT  -> HIGH
 
 ---------------------
 CONFIDENCE
