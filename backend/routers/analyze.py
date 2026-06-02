@@ -95,15 +95,6 @@ HIGH:
 - calls for illegal or harmful actions
 
 ---------------------
-TONE-TO-RISK MAPPING (STRICT)
----------------------
-The security_risk level is STRICTLY determined by the tone.
-This mapping is mandatory and overrides the descriptions above:
-- NEUTRAL, POSITIVE   -> LOW
-- NEGATIVE, TOXIC     -> MEDIUM
-- AGGRESSIVE, THREAT  -> HIGH
-
----------------------
 CONFIDENCE
 ---------------------
 - Value between 0.00 and 1.00
